@@ -2,6 +2,9 @@
 #Author: DiabloHorn http://diablohorn.wordpress.com
 #POC file2image, to bypass webfilters and other content type scanning engines
 # Thanks to Animal for answering questions at 4AM and polishing up midnight thoughts internals
+#TODO
+# - Support large files, split them up into several images
+# - Maybe implement encryption...
 
 
 import sys    
@@ -69,19 +72,40 @@ def encfile(filename):
     """
     if _sec:
         #do crypto before
-        secunsec(filename)    
-    pass
-    
+        secunsec(filename)
+        
+    (bytesread,rawbytes) = getfilebytes(filename)
+    encodedbytes = base64.b64encode(rawbytes)
+    del rawbytes    
+    (w,h,d) = getpixsize(len(encodedbytes))    
+    if d > 0:
+        for i in range(d):
+            encodedbytes += ('\0')
+    imc = Image.frombuffer("RGB", (w,h), encodedbytes,"raw","RGB",0,1)
+    imc.save(filename+".png")
+            
 def decimg(filename):
     """
     """
     if _sec:
         #do crypto before  
         secunsec(filename,enc=False)
-    pass
+
+    imo = Image.open(filename)
+    fr = open(filename+".decoded","wb")
+    rawdata = list(imo.getdata())
+    tsdata = ""
+    for x in rawdata:
+        for z in x:
+            tsdata += chr(z)
+    decdata = base64.b64decode(tsdata)
+    del rawdata
+    for a in decdata:
+        fr.write('%c' % a)
+    fr.close()  
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         usage()
 
     try:
@@ -109,46 +133,3 @@ if __name__ == "__main__":
     if len(_dec) != 0:
         fp("Decoding image to file")
         decimg(_dec)
-        
-    sys.exit()
-    filename = sys.argv[1]
-    oimgname = "img.png"
-    filesize = os.path.getsize(filename)
-    #let's start file->image
-    #get the file bytes
-    (bytesread,rawbytes) = getfilebytes(filename)
-    #encode them using base64
-    encodedbytes = base64.b64encode(rawbytes)
-    del rawbytes
-    #get the size of the image necessary to hold our file
-    (w,h,d) = getpixsize(len(encodedbytes))
-    print "width: " + str(w)
-    print "height: " + str(h)
-    print "diff: " + str(d)
-    #pad to needed length if necessary
-    if d > 0:
-        for i in range(d):
-            encodedbytes += ('\0')
-    print "Filesize: " + str(filesize)
-    print "Padding: " + str(d)
-    print "Finalsize: " + str(len(encodedbytes))
-    #create the image using our base64 encoded bytes
-    imc = Image.frombuffer("RGB", (w,h), encodedbytes,"raw","RGB",0,1)
-    #save the image
-    imc.save(oimgname)
-    #Here we reverse the process we go from image->file
-    imo = Image.open(oimgname)
-    fr = open("output","wb")
-    #get our file data
-    rawdata = list(imo.getdata())
-    tsdata = ""
-    #let's get it back in base64 format and decode it
-    for x in rawdata:
-        for z in x:
-            tsdata += chr(z)
-    decdata = base64.b64decode(tsdata)
-    del rawdata
-    #decoding done, let's write the file
-    for a in decdata:
-        fr.write('%c' % a)
-    fr.close()  
