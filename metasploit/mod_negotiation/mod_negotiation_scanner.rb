@@ -14,24 +14,18 @@ class Metasploit3 < Msf::Auxiliary
 
 	def initialize(info = {})
 		super(update_info(info,
-			'Name'   		=> 'HTTP Mod Negotiation Scanner',
+			'Name'   		=> 'Apache HTTPD mod_negotiation scanner',
 			'Description'	=> %q{
-				This module scans the webserver of the given host(s) for the existence of mod_negotiate. Returns the ip if the host is vulnerable.
+				This module scans the webserver of the given host(s) for the existence of mod_negotiate. Displays the ip address if the webserver has mod_negotiation enabled.
 			},
 			'Author' 		=> [ 'diablohorn [at] gmail.com' ],
-			'License'		=> BSD_LICENSE,
-			'Version'		=> '0.1'))
+			'License'		=> MSF_LICENSE,
+			'Version'		=> '$Revision: $'))
 
 		register_options(
 			[
 				OptString.new('PATH', [ true,  "The path to detect mod_negotiation", '/']),
 				OptString.new('FILENAME',[true, "Filename to use as a test",'index'])
-			], self.class)
-
-		register_advanced_options(
-			[
-				OptBool.new('NoDetailMessages', [ false, "Do not display detailed test messages", true ]),
-				OptInt.new('TestThreads', [ true, "Number of test threads", 25])
 			], self.class)
 	end
 
@@ -64,7 +58,7 @@ class Metasploit3 < Msf::Auxiliary
 
 			return if not res
             #check for alternates header
-            if(res.headers.to_s.downcase.include? 'alternates')
+            if(res.code == 406)
                 print_status("#{ip}")
             end
 		rescue ::Rex::ConnectionRefused, ::Rex::HostUnreachable, ::Rex::ConnectionTimeout

@@ -15,24 +15,18 @@ class Metasploit3 < Msf::Auxiliary
 
 	def initialize(info = {})
 		super(update_info(info,
-			'Name'   		=> 'HTTP Mod Negotiation Bruter',
+			'Name'   		=> 'Apache HTTPD mod_negotiation Filename Bruter',
 			'Description'	=> %q{
-				This module performs a brute force attack using mod_negotiation on the given host(s). Returns the ip and the found file if the host is vulnerable.
+				This module performs a brute force attack in order to discover existing files on a server which uses mod_negotiation. If the filename is found the modules prints the ip address and the files it has found. 
 			},
 			'Author' 		=> [ 'diablohorn [at] gmail.com' ],
-			'License'		=> BSD_LICENSE,
-			'Version'		=> '0.1'))
+			'License'		=> MSF_LICENSE,
+			'Version'		=> '$Revision: $'))
 
 		register_options(
 			[
 				OptString.new('PATH', [ true,  "The path to detect mod_negotiation", '/']),
-				OptString.new('FILEPATH',[true, "path to file with file names",'/opt/metasploit3/msf3/data/wmap/wmap_files.txt'])
-			], self.class)
-
-		register_advanced_options(
-			[
-				OptBool.new('NoDetailMessages', [ false, "Do not display detailed test messages", true ]),
-				OptInt.new('TestThreads', [ true, "Number of test threads", 25])
+				OptString.new('FILEPATH',[true, "path to file with file names", File.join(Msf::Config.install_root, "data", "wmap", "wmap_files.txt")])
 			], self.class)
 	end
 
