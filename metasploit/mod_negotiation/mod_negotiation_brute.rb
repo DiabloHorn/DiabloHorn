@@ -1,4 +1,8 @@
 ##
+# $Id: $
+##
+
+##
 # mod_negotiation bruter
 # http://httpd.apache.org/docs/1.3/content-negotiation.html
 ##
@@ -17,7 +21,7 @@ class Metasploit3 < Msf::Auxiliary
 		super(update_info(info,
 			'Name'   		=> 'Apache HTTPD mod_negotiation Filename Bruter',
 			'Description'	=> %q{
-				This module performs a brute force attack in order to discover existing files on a server which uses mod_negotiation. If the filename is found the modules prints the ip address and the files it has found. 
+				This module performs a brute force attack in order to discover existing files on a server which uses mod_negotiation. If the filename is found the modules prints the ip address and the files it has found.
 			},
 			'Author' 		=> [ 'diablohorn [at] gmail.com' ],
 			'License'		=> MSF_LICENSE,
@@ -44,37 +48,37 @@ class Metasploit3 < Msf::Auxiliary
 		
 		#load the file with filenames into memory
 		queue = []
-		File.open(datastore['FILEPATH'], 'r').each_line do |fn|
+		File.open(datastore['FILEPATH'], 'rb').each_line do |fn|
 			queue << fn.strip
 		end
 
 		vhost = datastore['VHOST'] || ip
 		prot  = datastore['SSL'] ? 'https' : 'http'
 
-        #
-        # Send the request and parse the response headers for an alternates header
-        #
+		#
+		# Send the request and parse the response headers for an alternates header
+		#
 		begin
-		    queue.each do |dirname|
+			queue.each do |dirname|
 			reqpath = tpath+dirname
-		        #send the request the accept header is key here
-			    res = send_request_cgi({
-				    'uri'  		=>  reqpath,
-				    'method'   	=> 'GET',
-				    'ctype'     => 'text/html',
-				    'headers'	=> {'Accept' => 'a/b'}
-			    }, 20)
+				#send the request the accept header is key here
+				res = send_request_cgi({
+					'uri'  		=>  reqpath,
+					'method'   	=> 'GET',
+					'ctype'     => 'text/html',
+					'headers'	=> {'Accept' => 'a/b'}
+				}, 20)
 
-			    return if not res
-                #check for alternates header and parse them
-                if(res.code == 406)
-                    chunks = res.headers.to_s.scan(/"(.*?)"/i).flatten
-                    chunks.each do |chunk|
-                        chunk = chunk.to_s
-                        print_status("#{ip} #{tpath}#{chunk}")
-                    end
-                end
-            end            
+				return if not res
+				#check for alternates header and parse them
+				if(res.code == 406)
+					chunks = res.headers.to_s.scan(/"(.*?)"/i).flatten
+					chunks.each do |chunk|
+						chunk = chunk.to_s
+						print_status("#{ip} #{tpath}#{chunk}")
+					end
+				end
+			end
 		rescue ::Rex::ConnectionRefused, ::Rex::HostUnreachable, ::Rex::ConnectionTimeout
 			conn = false
 		rescue ::Timeout::Error, ::Errno::EPIPE
@@ -83,4 +87,3 @@ class Metasploit3 < Msf::Auxiliary
 		return if not conn
 	end
 end
-

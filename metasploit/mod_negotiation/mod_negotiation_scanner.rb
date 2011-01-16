@@ -1,5 +1,5 @@
 ##
-# mod_negotiation scanner
+# $Id: $
 ##
 
 require 'rex/proto/http'
@@ -44,11 +44,11 @@ class Metasploit3 < Msf::Auxiliary
 		vhost = datastore['VHOST'] || ip
 		prot  = datastore['SSL'] ? 'https' : 'http'
 
-        #
-        # Send the request and parse the response headers for an alternates header
-        #
+		#
+		# Send the request and parse the response headers for an alternates header
+		#
 		begin
-		    #send the request the accept header is key here
+			#send the request the accept header is key here
 			res = send_request_cgi({
 				'uri'  		=>  tpath+tfile,
 				'method'   	=> 'GET',
@@ -57,10 +57,10 @@ class Metasploit3 < Msf::Auxiliary
 			}, 20)
 
 			return if not res
-            #check for alternates header
-            if(res.code == 406)
-                print_status("#{ip}")
-            end
+			#check for alternates header
+			if(res.code == 406)
+				print_status("#{ip}")
+			end
 		rescue ::Rex::ConnectionRefused, ::Rex::HostUnreachable, ::Rex::ConnectionTimeout
 			conn = false
 		rescue ::Timeout::Error, ::Errno::EPIPE
