@@ -28,7 +28,11 @@ yandexsearchengine = 'http://www.yandex.com/yandsearch'
 
 def getgoogleresults(maindomain,searchparams):
     regexword = r'(http://|https://){0,1}(.*)' + maindomain.replace('.','\.')
-    content = requests.get(googlesearchengine,params=searchparams).content
+    try:
+        content = requests.get(googlesearchengine,params=searchparams).content
+    except:
+        print >> sys.stderr, 'Skipping this search engine'
+        return        
     soup = BeautifulSoup(content)
     links = soup.find_all('cite')
     extract = re.compile(regexword)
@@ -41,7 +45,11 @@ def getgoogleresults(maindomain,searchparams):
 
 def getbingresults(maindomain,searchparams):
     regexword = r'(http://|https://){0,1}(.*)' + maindomain.replace('.','\.')
-    content = requests.get(bingsearchengine,params=searchparams).content
+    try:
+        content = requests.get(bingsearchengine,params=searchparams).content
+    except:
+        print >> sys.stderr, 'Skipping this search engine'
+        return    
     soup = BeautifulSoup(content)
     links = soup.find_all('cite')
     extract = re.compile(regexword)
@@ -54,7 +62,11 @@ def getbingresults(maindomain,searchparams):
 
 def getbaiduresults(maindomain,searchparams):
     regexword = r'(http://|https://){0,1}(.*)' + maindomain.replace('.','\.')
-    content = requests.get(baidusearchengine,params=searchparams).content
+    try:
+        content = requests.get(baidusearchengine,params=searchparams).content
+    except:
+        print >> sys.stderr, 'Skipping this search engine'
+        return
     soup = BeautifulSoup(content)
     links = soup.find_all('span','g') #<span class="g">
     extract = re.compile(regexword)
@@ -67,7 +79,11 @@ def getbaiduresults(maindomain,searchparams):
 
 def getixquickresults(maindomain,searchparams):
     regexword = r'(http://|https://){0,1}(.*)' + maindomain.replace('.','\.')
-    content = requests.post(ixquicksearchengine,data=searchparams).content
+    try:
+        content = requests.post(ixquicksearchengine,data=searchparams).content
+    except:
+        print >> sys.stderr, 'Skipping this search engine'
+        return        
     soup = BeautifulSoup(content)
     links = soup.find_all('span','url') #<span class="url">
     extract = re.compile(regexword)
@@ -80,7 +96,11 @@ def getixquickresults(maindomain,searchparams):
 
 def getyandexresults(maindomain,searchparams):
     regexword = r'(http://|https://){0,1}(.*)' + maindomain.replace('.','\.')
-    content = requests.get(yandexsearchengine,params=searchparams).content
+    try:
+        content = requests.get(yandexsearchengine,params=searchparams).content
+    except:
+        print >> sys.stderr, 'Skipping this search engine'
+        return        
     soup = BeautifulSoup(content)
     links = soup.find_all('a','b-serp2-item__title-link')
     extract = re.compile(regexword)
