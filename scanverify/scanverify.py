@@ -16,7 +16,7 @@ except:
     sys.exit()
 
 conf.verb = 0
-#{hash:{timestamp: (host,port)}
+#{hash:{timestamp: (srchost, dsthost,port)}
 connections = dict()
 
 def usage():
@@ -25,11 +25,9 @@ def usage():
     print 'Usage: '
     print sys.argv[0] + ' <pcapfile> <threshold>'
     print 'Ex: '
-    print sys.argv[0] + ' nmapscan.pcap 0.8'
-    print '[timestamp] [difference] [dst ip] [dst port]'
-    print '1367779878.16 5.00033688545 10.50.0.103 22'
-    print '1367779879.26 5.00119495392 10.50.0.103 22'
-    
+    print sys.argv[0] + ' delayedresponse.pcap 0.8'
+    print '[timestamp] [difference] [src ip] [dst ip] [dst port] [response flags]'
+    print '1367887784.231386 5.00098395348 10.50.0.107 10.50.0.103 22 [\'SYN\', \'ACK\']'   
     sys.exit()
 
 def flags2human(flagbits):
@@ -59,13 +57,15 @@ if __name__ == "__main__":
             humanflagslen = len(humanflags)
             if humanflags[0] == 'SYN' and humanflagslen == 1:
                 tohash = '%s%s%s%s%s' % (packet[IP].src, packet[IP].dst, packet[TCP].sport, packet[TCP].dport, packet[TCP].seq)
-                connections[gethash(tohash)] = {packet.time:(packet[IP].dst,packet[TCP].dport)}
+                connections[gethash(tohash)] = {packet.time:(packet[IP].src, packet[IP].dst,packet[TCP].dport)}
             #iffy...seems to work for now
-            if humanflagslen > 1 and humanflags[1] == 'ACK':  
+            if humanflags[0] == 'RST' or (humanflagslen > 1 and humanflags[1] == 'ACK'):  
                 tohash = '%s%s%s%s%s' % (packet[IP].dst, packet[IP].src, packet[TCP].dport, packet[TCP].sport, packet[TCP].ack-1)
                 originalrequest = connections.get(gethash(tohash))
                 if originalrequest != None:
                     originaltime = originalrequest.keys()[0]
-                    timediff = (packet.time - originaltime)
-                    if timediff > threshold:
-                        print '%.6f %s %s' % (originaltime, timediff, ' '.join([str(x) for x in originalrequest[originaltime]]))
+                    #make sure we are dealing with a response to our initiated connection
+                    if originalrequest[originaltime][0] == packet[IP].dst:
+                        timediff = (packet.time - originaltime)
+                        if timediff > threshold:
+                            print '%.6f %s %s %s' % (originaltime, timediff, ' '.join([str(x) for x in originalrequest[originaltime]]), humanflags)
