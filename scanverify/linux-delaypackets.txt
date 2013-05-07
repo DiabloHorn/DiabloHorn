@@ -1,0 +1,6 @@
+http://serverfault.com/questions/389290/using-tc-to-delay-packets-to-only-a-single-ip-address
+http://fixunix.com/networking/523822-tc-slow-traffic-one-port.html
+
+sudo tc qdisc add dev eth0 root handle 1: prio
+sudo tc qdisc add dev eth0 parent 1:1 handle 2: netem delay 5s
+sudo tc filter add dev eth0 parent 1: protocol ip prio 1 u32 match ip sport 22 0xffff flowid 1:1
