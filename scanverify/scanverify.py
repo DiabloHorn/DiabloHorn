@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#DiabloHorn http://diablohorn.wordpress.com
 
 import sys
 import md5
