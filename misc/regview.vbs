@@ -197,7 +197,6 @@ do while true
         chosenkeypath = ""
         command = split(ln)
         if ubound(command) = 1 then
-            wscript.echo(command)
             if IsNumeric(command(1)) Then
                 chosenkey = rootkeys(trim(command(1)))
                 promptpath = chosenkey & "\"
