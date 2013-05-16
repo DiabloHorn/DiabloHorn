@@ -145,10 +145,11 @@ function help()
     wscript.stdout.write(vbCrLf)
     wscript.stdout.write("help - displays this help" & vbCrLf)
     wscript.stdout.write("cd <keyname> - change to that key" & vbCrLf)
+    wscript.stdout.write("cd .. - go to parent/previous key" & vbCrLf)    
     wscript.stdout.write("back - go to parent/previous key" & vbCrLf)
     wscript.stdout.write("ls - list current subkeys" & vbCrLf)
     wscript.stdout.write("lsv - list current key values" & vbCrLf)
-    wscript.stdout.write("use - root key number to use" & vbCrLf)    
+    wscript.stdout.write("use <number> - root key number to use" & vbCrLf)    
     wscript.stdout.write(vbTab & "0 - HKEY_CLASSES_ROOT" & vbCrLf)
     wscript.stdout.write(vbTab & "1 - HKEY_CURRENT_USER" & vbCrLf)
     wscript.stdout.write(vbTab & "2 - HKEY_LOCAL_MACHINE" & vbCrLf)
@@ -168,46 +169,11 @@ function displayprompt(promptdata)
 end function
 
 '############################################
-' Main logic
+' go to parent key
 '############################################
-do while true
-    Dim command
-    displayprompt(promptpath)
-    ln = trim(wscript.stdin.readline)
-    if ln = "exit" Then 
-        exit do
-    elseif ln = "use" Then
-        chosenkeypath = ""
-        wscript.stdout.write("key number: ")
-        ln = wscript.stdin.readline
-        if IsNumeric(ln) Then
-            chosenkey = rootkeys(lcase(trim(ln)))
-            promptpath = chosenkey & "\"
-        else 
-            wscript.Echo "That was not a number"
-        end if    
-    elseif InStr(ln,"cd") > 0 Then
-        Dim count, spacestring
-        spacestring = ""
-        command = split(ln)
-        if ubound(command) > 0 then
-            For count = 1 to ubound(command) 
-                if spacestring = "" Then
-                    spacestring = trim(command(count))
-                else
-                    spacestring = spacestring & " " & trim(command(count))
-                end if
-            Next
-            if chosenkeypath = "" Then
-                chosenkeypath = spacestring
-            else
-                chosenkeypath = chosenkeypath & "\" & spacestring
-            end if
-            promptpath = chosenkey & "\" & chosenkeypath
-        end if
-    elseif ln = "back" Then
+function pathgoback(currentpath)
         Dim splittedpath, i
-        splittedpath = split(chosenkeypath,"\")
+        splittedpath = split(currentpath,"\")
         chosenkeypath = ""
         For i = 0 to (ubound(splittedpath)-1)
             if chosenkeypath = "" then
@@ -217,6 +183,68 @@ do while true
             end if
         Next
         promptpath = chosenkey & "\" & chosenkeypath
+end function
+'############################################
+' Main logic
+'############################################
+do while true
+    Dim command
+    displayprompt(promptpath)
+    ln = trim(wscript.stdin.readline)
+    if ln = "exit" Then 
+        exit do
+    elseif InStr(ln,"use") = 1 Then
+        chosenkeypath = ""
+        command = split(ln)
+        if ubound(command) = 1 then
+            wscript.echo(command)
+            if IsNumeric(command(1)) Then
+                chosenkey = rootkeys(trim(command(1)))
+                promptpath = chosenkey & "\"
+            else 
+                wscript.Echo "That was not a number"
+            end if   
+        else
+            wscript.stdout.write("Please Choose: " & vbCrLf)
+            wscript.stdout.write(vbTab & "0 - HKEY_CLASSES_ROOT" & vbCrLf)
+            wscript.stdout.write(vbTab & "1 - HKEY_CURRENT_USER" & vbCrLf)
+            wscript.stdout.write(vbTab & "2 - HKEY_LOCAL_MACHINE" & vbCrLf)
+            wscript.stdout.write(vbTab & "3 - HKEY_USERS" & vbCrLf)
+            wscript.stdout.write(vbTab & "4 - HKEY_CURRENT_CONFIG" & vbCrLf)        
+            wscript.stdout.write("key number: ")
+            ln = wscript.stdin.readline
+            if IsNumeric(ln) Then
+                chosenkey = rootkeys(trim(ln))
+                promptpath = chosenkey & "\"
+            else 
+                wscript.Echo "That was not a number"
+            end if             
+        end if
+    elseif InStr(ln,"cd") = 1 Then
+        Dim count, spacestring
+        spacestring = ""
+        command = split(ln)
+        if ubound(command) > 0 then
+            if trim(command(1)) = ".." then
+                pathgoback(chosenkeypath)
+            else
+                For count = 1 to ubound(command) 
+                    if spacestring = "" Then
+                        spacestring = trim(command(count))
+                    else
+                        spacestring = spacestring & " " & trim(command(count))
+                    end if
+                Next
+                if chosenkeypath = "" Then
+                    chosenkeypath = spacestring
+                else
+                    chosenkeypath = chosenkeypath & "\" & spacestring
+                end if
+                promptpath = chosenkey & "\" & chosenkeypath
+            end if
+        end if
+    elseif ln = "back" Then
+        pathgoback(chosenkeypath)
     elseif ln = "ls" Then
         list(chosenkeypath)
     elseif ln = "lsv" Then
